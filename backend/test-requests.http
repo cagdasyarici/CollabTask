@@ -1,0 +1,805 @@
+### CollabTask API Test Requests
+
+# Health Check
+GET http://localhost:3000/health
+
+###
+
+# =============================================================================
+# AUTHENTICATION
+# =============================================================================
+
+# Kullanıcı Kaydı
+POST http://localhost:3000/api/auth/signup
+Content-Type: application/json
+
+{
+  "name": "Test Kullanıcı",
+  "email": "test@collabtask.com",
+  "password": "123456"
+}
+
+###
+
+# Kullanıcı Girişi
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@collabtask.com",
+  "password": "123456"
+}
+
+###
+
+# Token Yenileme (Authorization header gerekli)
+POST http://localhost:3000/api/auth/refresh
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Kullanıcı Çıkışı
+POST http://localhost:3000/api/auth/logout
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Profil Bilgileri
+GET http://localhost:3000/api/auth/profile
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Şifre Sıfırlama
+POST http://localhost:3000/api/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "test@collabtask.com"
+}
+
+###
+
+# =============================================================================
+# USERS
+# =============================================================================
+
+# Kullanıcı Listesi
+GET http://localhost:3000/api/users?page=1&limit=10
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Kullanıcı Detayı
+GET http://localhost:3000/api/users/1
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Kullanıcı Güncelleme
+PUT http://localhost:3000/api/users/1
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "name": "Güncellenmiş Ad",
+  "position": "Senior Developer"
+}
+
+###
+
+# Kullanıcı Silme
+DELETE http://localhost:3000/api/users/1
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Kullanıcı Davet
+POST http://localhost:3000/api/users/invite
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "email": "yeni@collabtask.com",
+  "role": "member",
+  "message": "Takımımıza katılmanızı bekliyoruz!"
+}
+
+###
+
+# Mevcut Kullanıcı Profili
+GET http://localhost:3000/api/users/me
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Profil Güncelleme
+PUT http://localhost:3000/api/users/me
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "name": "Yeni Adım",
+  "timezone": "Europe/Istanbul"
+}
+
+###
+
+# Kullanıcı Ayarları
+PUT http://localhost:3000/api/users/me/settings
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "language": "tr",
+  "theme": "dark",
+  "notifications": {
+    "email": true,
+    "push": true
+  }
+}
+
+###
+
+# Şifre Değiştirme
+PUT http://localhost:3000/api/users/me/password
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "currentPassword": "123456",
+  "newPassword": "newpassword123"
+}
+
+###
+
+# Kullanıcı İstatistikleri
+GET http://localhost:3000/api/users/1/stats
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# =============================================================================
+# PROJECTS
+# =============================================================================
+
+# Proje Listesi
+GET http://localhost:3000/api/projects?page=1&limit=10&status=active
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Proje Detayı
+GET http://localhost:3000/api/projects/1
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Proje Oluşturma
+POST http://localhost:3000/api/projects
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "name": "Yeni Proje",
+  "description": "Test projesi açıklaması",
+  "priority": "high",
+  "dueDate": "2024-12-31T23:59:59Z",
+  "tags": ["test", "yeni"]
+}
+
+###
+
+# Proje Güncelleme
+PUT http://localhost:3000/api/projects/1
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "name": "Güncellenmiş Proje",
+  "status": "active",
+  "progress": 75
+}
+
+###
+
+# Proje Silme
+DELETE http://localhost:3000/api/projects/1
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Proje Üyesi Ekleme
+POST http://localhost:3000/api/projects/1/members
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "userId": "2"
+}
+
+###
+
+# Proje Üyesi Çıkarma
+DELETE http://localhost:3000/api/projects/1/members/2
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Proje Durumu Güncelleme
+PUT http://localhost:3000/api/projects/1/status
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "status": "completed"
+}
+
+###
+
+# Proje İstatistikleri
+GET http://localhost:3000/api/projects/1/stats
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Proje Aktiviteleri
+GET http://localhost:3000/api/projects/1/activities
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Proje Şablonları
+GET http://localhost:3000/api/projects/templates
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# =============================================================================
+# TASKS
+# =============================================================================
+
+# Görev Listesi
+GET http://localhost:3000/api/tasks?page=1&limit=10&status=in_progress&project=1
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Görev Detayı
+GET http://localhost:3000/api/tasks/1
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Görev Oluşturma
+POST http://localhost:3000/api/tasks
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "title": "Yeni Görev",
+  "description": "Test görevi açıklaması",
+  "projectId": "1",
+  "priority": "medium",
+  "assigneeIds": ["2"],
+  "dueDate": "2024-08-15T23:59:59Z",
+  "tags": ["backend", "api"]
+}
+
+###
+
+# Görev Güncelleme
+PUT http://localhost:3000/api/tasks/1
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "title": "Güncellenmiş Görev",
+  "status": "in_progress",
+  "actualHours": 8
+}
+
+###
+
+# Görev Silme
+DELETE http://localhost:3000/api/tasks/1
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Görev Durumu Güncelleme
+PUT http://localhost:3000/api/tasks/1/status
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "status": "completed"
+}
+
+###
+
+# Görev Atama
+PUT http://localhost:3000/api/tasks/1/assign
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "assigneeIds": ["3", "4"]
+}
+
+###
+
+# Görev Yorumu Ekleme
+POST http://localhost:3000/api/tasks/1/comments
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "content": "Bu görev için yeni bir yorum",
+  "mentions": ["@user_2"]
+}
+
+###
+
+# Yorum Güncelleme
+PUT http://localhost:3000/api/tasks/1/comments/1
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "content": "Güncellenmiş yorum"
+}
+
+###
+
+# Yorum Silme
+DELETE http://localhost:3000/api/tasks/1/comments/1
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Dosya Ekleme
+POST http://localhost:3000/api/tasks/1/attachments
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "name": "document.pdf",
+  "url": "/uploads/document.pdf",
+  "type": "application/pdf",
+  "size": 1024000
+}
+
+###
+
+# Dosya Silme
+DELETE http://localhost:3000/api/tasks/1/attachments/1
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Alt Görev Ekleme
+POST http://localhost:3000/api/tasks/1/subtasks
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "title": "Alt görev başlığı",
+  "assigneeId": "2",
+  "dueDate": "2024-08-10T23:59:59Z"
+}
+
+###
+
+# Alt Görev Güncelleme
+PUT http://localhost:3000/api/tasks/1/subtasks/1
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "title": "Güncellenmiş alt görev",
+  "completed": true
+}
+
+###
+
+# Alt Görev Silme
+DELETE http://localhost:3000/api/tasks/1/subtasks/1
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Kanban Board
+GET http://localhost:3000/api/tasks/kanban/1
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Toplu Güncelleme
+POST http://localhost:3000/api/tasks/bulk-update
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "taskIds": ["1", "2", "3"],
+  "updates": {
+    "status": "review",
+    "assigneeIds": ["5"]
+  }
+}
+
+###
+
+# Zaman Kaydı Ekleme
+POST http://localhost:3000/api/tasks/1/time-entries
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "startTime": "2024-07-09T09:00:00Z",
+  "endTime": "2024-07-09T17:00:00Z",
+  "description": "Görev üzerinde çalışma"
+}
+
+###
+
+# Zaman Kayıtları
+GET http://localhost:3000/api/tasks/1/time-entries
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# =============================================================================
+# TEAMS
+# =============================================================================
+
+# Takım Listesi
+GET http://localhost:3000/api/teams
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Takım Detayı
+GET http://localhost:3000/api/teams/1
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Takım Oluşturma
+POST http://localhost:3000/api/teams
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "name": "Yeni Takım",
+  "description": "Test takımı açıklaması",
+  "leaderId": "1",
+  "memberIds": ["2", "3"],
+  "department": "IT",
+  "color": "#3B82F6"
+}
+
+###
+
+# Takım Güncelleme
+PUT http://localhost:3000/api/teams/1
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "name": "Güncellenmiş Takım",
+  "description": "Yeni açıklama",
+  "color": "#10B981"
+}
+
+###
+
+# Takım Silme
+DELETE http://localhost:3000/api/teams/1
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Takım Üyesi Ekleme
+POST http://localhost:3000/api/teams/1/members
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "userId": "4"
+}
+
+###
+
+# Takım Üyesi Çıkarma
+DELETE http://localhost:3000/api/teams/1/members/4
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Takım Lideri Değiştirme
+PUT http://localhost:3000/api/teams/1/leader
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "leaderId": "3"
+}
+
+###
+
+# Takım Projeleri
+GET http://localhost:3000/api/teams/1/projects
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# =============================================================================
+# NOTIFICATIONS
+# =============================================================================
+
+# Bildirim Listesi
+GET http://localhost:3000/api/notifications?page=1&limit=20&read=false
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Bildirimi Okundu İşaretle
+PUT http://localhost:3000/api/notifications/1/read
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Tüm Bildirimleri Okundu İşaretle
+PUT http://localhost:3000/api/notifications/mark-all-read
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Bildirim Silme
+DELETE http://localhost:3000/api/notifications/1
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Bildirim Ayarları
+GET http://localhost:3000/api/notifications/settings
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Bildirim Ayarları Güncelleme
+POST http://localhost:3000/api/notifications/settings
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "email": {
+    "enabled": true,
+    "taskAssigned": true,
+    "commentAdded": false
+  },
+  "push": {
+    "enabled": true,
+    "taskAssigned": true
+  }
+}
+
+###
+
+# =============================================================================
+# ACTIVITIES & ANALYTICS
+# =============================================================================
+
+# Aktivite Listesi
+GET http://localhost:3000/api/activities?page=1&limit=20&type=task_created
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Kullanıcı Aktiviteleri
+GET http://localhost:3000/api/activities/user/1
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Proje Aktiviteleri
+GET http://localhost:3000/api/activities/project/1
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Dashboard Analytics
+GET http://localhost:3000/api/activities/analytics/dashboard
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Proje Analytics
+GET http://localhost:3000/api/activities/analytics/projects
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Kullanıcı Analytics
+GET http://localhost:3000/api/activities/analytics/users
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Görev Analytics
+GET http://localhost:3000/api/activities/analytics/tasks
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Zaman Takibi Analytics
+GET http://localhost:3000/api/activities/analytics/time-tracking
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# =============================================================================
+# FILES
+# =============================================================================
+
+# Dosya Listesi
+GET http://localhost:3000/api/files?page=1&limit=20&type=image&search=logo
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Dosya Detayı
+GET http://localhost:3000/api/files/1
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Dosya Yükleme
+POST http://localhost:3000/api/files/upload
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "name": "test-document.pdf",
+  "type": "application/pdf",
+  "size": 1024000,
+  "content": "base64_encoded_content_here"
+}
+
+###
+
+# Dosya Silme
+DELETE http://localhost:3000/api/files/1
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Toplu Dosya Yükleme
+POST http://localhost:3000/api/files/bulk-upload
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "files": [
+    {
+      "name": "image1.jpg",
+      "type": "image/jpeg",
+      "size": 512000
+    },
+    {
+      "name": "document.pdf",
+      "type": "application/pdf",
+      "size": 1024000
+    }
+  ]
+}
+
+###
+
+# =============================================================================
+# SEARCH
+# =============================================================================
+
+# Genel Arama
+GET http://localhost:3000/api/search?q=dashboard&type=all&limit=10
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Proje Arama
+GET http://localhost:3000/api/search/projects?q=collab&status=active
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Görev Arama
+GET http://localhost:3000/api/search/tasks?q=API&priority=high&project=1
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Kullanıcı Arama
+GET http://localhost:3000/api/search/users?q=ahmet&department=IT
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Arama Önerileri
+GET http://localhost:3000/api/search/suggestions?q=dash&type=all
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# =============================================================================
+# ADMIN & SETTINGS
+# =============================================================================
+
+# Genel Ayarlar (Herkese açık)
+GET http://localhost:3000/api/settings/general
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+
+# Admin: Kullanıcı Listesi
+GET http://localhost:3000/api/admin/users?page=1&limit=20&role=admin
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+
+###
+
+# Admin: Kullanıcı Rolü Güncelleme
+PUT http://localhost:3000/api/admin/users/2/role
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "role": "manager",
+  "permissions": ["projects.manage", "teams.manage"]
+}
+
+###
+
+# Admin: Sistem İstatistikleri
+GET http://localhost:3000/api/admin/system-stats
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+
+###
+
+# Admin: Audit Logları
+GET http://localhost:3000/api/admin/audit-logs?page=1&limit=50&action=user.login
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+
+###
+
+# Admin: Sistem Ayarları Güncelleme
+PUT http://localhost:3000/api/admin/settings
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "security": {
+    "passwordMinLength": 8,
+    "requireTwoFactor": false,
+    "sessionTimeout": 3600
+  },
+  "notifications": {
+    "emailEnabled": true,
+    "pushEnabled": true
+  },
+  "features": {
+    "timeTracking": true,
+    "fileSharing": true,
+    "teamChat": false
+  }
+}
+
+###
+
+# =============================================================================
+# API DOCUMENTATION
+# =============================================================================
+
+# API Docs (Swagger UI)
+# GET http://localhost:3000/api-docs
+
+### 

@@ -1,0 +1,26 @@
+export type UserRole = 'admin' | 'manager' | 'member';
+export type UserStatus = 'active' | 'inactive' | 'invited';
+
+export type ProjectStatus = 'active' | 'paused' | 'completed' | 'archived';
+export type ProjectVisibility = 'public' | 'private' | 'team';
+
+export type TaskStatus = 'backlog' | 'todo' | 'in_progress' | 'review' | 'done';
+export type Priority = 'low' | 'medium' | 'high' | 'urgent';
+
+export type NotificationType =
+  | 'task_assigned'
+  | 'task_completed'
+  | 'comment_added'
+  | 'due_date_reminder'
+  | 'project_invitation'
+  | 'mention';
+
+export type ActivityType =
+  | 'task_created'
+  | 'task_updated'
+  | 'task_completed'
+  | 'project_created'
+  | 'user_joined'
+  | 'comment_added';
+
+

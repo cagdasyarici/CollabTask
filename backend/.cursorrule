@@ -1,0 +1,54 @@
+# Proje: CollabTask - Gerçek Zamanlı Proje Yönetim Platformu
+
+Bu dosya, `collabtask` projesinin geliştirilmesi sırasında AI agent'ına rehberlik eder. Lütfen tüm kod üretimlerinde aşağıdaki kurallara ve mimariye sadık kal.
+
+## 1. Genel Hedefler ve Teknoloji Yığını
+
+- **Backend:** Node.js, Express.js, TypeScript
+- **Frontend:** React, TypeScript, Vite
+- **Veritabanı:** PostgreSQL (ana veriler için), ileride Redis (caching), Kafka (asenkron mesajlaşma) eklenecek.
+- **ORM:** Prisma
+- **Test:** Jest, Supertest
+- **API Dökümantasyonu:** Swagger (JSDoc ile)
+- **Deployment:** Docker, Docker Compose
+
+## 2. Backend Mimarisi: CQRS ve DDD-Lite
+
+Backend, CQRS (Command Query Responsibility Segregation) prensibine göre yapılandırılmıştır. Tüm kodlar `src/features/` altındaki modüller içinde yer almalıdır.
+
+- **`src/core/`**: Paylaşılan arayüzler, genel hata sınıfları, ve temel ara yazılımlar (middleware) gibi projeye özgü, framework'ten bağımsız kodları içerir.
+- **`src/infrastructure/`**: Dış dünya ile iletişim kuran kodları barındırır. PrismaClient örneği, veritabanı bağlantısı, Redis istemcisi gibi implementasyonlar burada bulunur.
+- **`src/features/{feature-name}/`**: Her bir iş alanı (bounded context) kendi klasörüne sahiptir (örneğin, `users`, `projects`).
+    - **`api/`**: Express.js'e özgü dosyaları içerir: `*.controller.ts` ve `*.routes.ts`. Controller'lar KESİNLİKLE iş mantığı içermemeli, sadece isteği alıp ilgili command/query'yi tetiklemelidir.
+    - **`application/`**: İş akışlarını yönetir.
+        - **`commands/`**: Sistemin durumunu değiştiren operasyonlar (CUD). Her komut ve handler'ı kendi dosyasındadır (`create-user.command.ts`, `create-user.handler.ts`). Handler'lar iş mantığını içerir.
+        - **`queries/`**: Sistemden veri okuyan operasyonlar (R). Komutlarla aynı yapıya sahiptir.
+    - **`domain/`**: İlgili özelliğin temel varlıklarını (`*.entity.ts`), arayüzlerini (`*.repository.ts`) ve domain'e özgü hataları içerir. Bu katman, framework'ten ve altyapıdan tamamen bağımsız olmalıdır.
+
+## 3. Veritabanı ve Prisma Kuralları
+
+- Veritabanı şeması yalnızca `prisma/schema.prisma` dosyası üzerinden yönetilir.
+- Değişiklikler `prisma migrate dev` komutu ile uygulanır.
+- Modellerde `createdAt` ve `updatedAt` alanları için `@default(now())` ve `@updatedAt` direktiflerini kullan.
+
+## 4. API ve Dökümantasyon Kuralları
+
+- Tüm public API endpoint'leri için JSDoc formatında Swagger yorumları eklenmelidir.
+- API rotaları `/api/v1/{feature-name}` formatında olmalıdır (örneğin `/api/v1/users/signup`).
+- Başarılı yanıtlar için 200/201, hatalı istekler için 4xx, sunucu hataları için 5xx HTTP durum kodlarını tutarlı bir şekilde kullan. İstek doğrulama (validation) hataları için 400 (Bad Request) kodu dönülmelidir.
+
+## 5. Test Stratejisi
+
+- **Birim Testleri (Unit Tests):** `Jest` kullanılarak yazılacaktır. Özellikle Command/Query Handler'ları gibi iş mantığı içeren sınıflar ve fonksiyonlar için yazılmalıdır. Bağımlılıklar (örn: veritabanı repository'si) mock'lanmalıdır.
+- **Entegrasyon Testleri (Integration Tests):** `Jest` ve `supertest` kullanılarak yazılacaktır. API endpoint'lerinin uçtan uca doğru çalışıp çalışmadığını kontrol eder. Bu testler için ayrı bir test veritabanı kullanılabilir.
+
+## 6. Frontend Mimarisi (collabtask-ui)
+
+- Frontend projesi `features` bazlı bir klasör yapısına sahip olacaktır.
+- **`components/`**: Buton, Input gibi atomik ve yeniden kullanılabilir bileşenler.
+- **`features/`**: Bir sayfayı veya büyük bir bileşeni oluşturan mantık ve bileşen grupları.
+- **`services/`**: Backend API'si ile iletişimi sağlayan `axios` çağrıları.
+- **`store/`**: Global state yönetimi için `Zustand` kullanılacaktır.
+- **`hooks/`**: Tekrar eden mantıklar için özel React Hook'ları.
+
+AI Agent: Lütfen bu kurallara göre hareket et. Sana vereceğim sıralı komutlar, bu mimariyi adım adım inşa etmek içindir.

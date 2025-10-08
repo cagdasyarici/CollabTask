@@ -1,0 +1,398 @@
+// Prisma Schema dosyası
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Kullanıcı modeli - Frontend User interface'ine uygun
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String   @map("password_hash")
+  avatar       String?
+  role         UserRole @default(MEMBER)
+  status       UserStatus @default(ACTIVE)
+  position     String?
+  department   String?
+  timezone     String?  @default("Europe/Istanbul")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  lastActive   DateTime? @map("last_active")
+
+  // İlişkiler
+  ownedProjects    Project[] @relation("ProjectOwner")
+  projectMembers   ProjectMember[]
+  teamMembers      TeamMember[]
+  teamLeads        Team[] @relation("TeamLeader")
+  assignedTasks    TaskAssignee[]
+  reportedTasks    Task[] @relation("TaskReporter")
+  comments         Comment[]
+  activities       Activity[]
+  notifications    Notification[]
+  timeEntries      TimeEntry[]
+  attachments      Attachment[]
+
+  @@map("users")
+}
+
+// Proje modeli
+model Project {
+  id          String        @id @default(cuid())
+  name        String
+  description String
+  color       String        @default("#3B82F6")
+  icon        String        @default("📋")
+  status      ProjectStatus @default(ACTIVE)
+  visibility  ProjectVisibility @default(TEAM)
+  priority    Priority      @default(MEDIUM)
+  progress    Int           @default(0)
+  template    String?
+  tags        String[]      @default([])
+  dueDate     DateTime?     @map("due_date")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  // İlişkiler
+  ownerId     String        @map("owner_id")
+  owner       User          @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  
+  members     ProjectMember[]
+  teams       ProjectTeam[]
+  tasks       Task[]
+  activities  Activity[]
+  settings    ProjectSettings?
+
+  @@map("projects")
+}
+
+// Proje üyeleri - Many-to-Many
+model ProjectMember {
+  id        String   @id @default(cuid())
+  projectId String   @map("project_id")
+  userId    String   @map("user_id")
+  joinedAt  DateTime @default(now()) @map("joined_at")
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@map("project_members")
+}
+
+// Proje ayarları
+model ProjectSettings {
+  id               String  @id @default(cuid())
+  projectId        String  @unique @map("project_id")
+  allowComments    Boolean @default(true) @map("allow_comments")
+  allowAttachments Boolean @default(true) @map("allow_attachments")
+  requireApproval  Boolean @default(false) @map("require_approval")
+  timeTracking     Boolean @default(false) @map("time_tracking")
+
+  project          Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_settings")
+}
+
+// Görev modeli
+model Task {
+  id              String     @id @default(cuid())
+  title           String
+  description     String     @default("")
+  status          TaskStatus @default(TODO)
+  priority        Priority   @default(MEDIUM)
+  position        Int        @default(0)
+  estimatedHours  Int?       @map("estimated_hours")
+  actualHours     Int?       @map("actual_hours")
+  tags            String[]   @default([])
+  dueDate         DateTime?  @map("due_date")
+  startDate       DateTime?  @map("start_date")
+  completedAt     DateTime?  @map("completed_at")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  // İlişkiler
+  projectId       String     @map("project_id")
+  project         Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  reporterId      String     @map("reporter_id")
+  reporter        User       @relation("TaskReporter", fields: [reporterId], references: [id])
+  
+  assignees       TaskAssignee[]
+  comments        Comment[]
+  attachments     Attachment[]
+  subtasks        Subtask[]
+  dependencies    TaskDependency[] @relation("DependentTask")
+  dependents      TaskDependency[] @relation("PrerequisiteTask")
+  timeEntries     TimeEntry[]
+  activities      Activity[]
+
+  @@map("tasks")
+}
+
+// Görev atanması - Many-to-Many
+model TaskAssignee {
+  id         String   @id @default(cuid())
+  taskId     String   @map("task_id")
+  userId     String   @map("user_id")
+  assignedAt DateTime @default(now()) @map("assigned_at")
+
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, userId])
+  @@map("task_assignees")
+}
+
+// Alt görevler
+model Subtask {
+  id          String    @id @default(cuid())
+  title       String
+  completed   Boolean   @default(false)
+  assigneeId  String?   @map("assignee_id")
+  dueDate     DateTime? @map("due_date")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  taskId      String    @map("task_id")
+  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("subtasks")
+}
+
+// Görev bağımlılıkları
+model TaskDependency {
+  id               String @id @default(cuid())
+  dependentTaskId  String @map("dependent_task_id")
+  prerequisiteTaskId String @map("prerequisite_task_id")
+
+  dependentTask    Task   @relation("DependentTask", fields: [dependentTaskId], references: [id], onDelete: Cascade)
+  prerequisiteTask Task   @relation("PrerequisiteTask", fields: [prerequisiteTaskId], references: [id], onDelete: Cascade)
+
+  @@unique([dependentTaskId, prerequisiteTaskId])
+  @@map("task_dependencies")
+}
+
+// Yorumlar
+model Comment {
+  id          String   @id @default(cuid())
+  content     String
+  mentions    String[] @default([])
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // İlişkiler
+  authorId    String   @map("author_id")
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  taskId      String   @map("task_id")
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  attachments Attachment[]
+  reactions   Reaction[]
+
+  @@map("comments")
+}
+
+// Dosya ekleri
+model Attachment {
+  id         String   @id @default(cuid())
+  name       String
+  url        String
+  type       String
+  size       Int
+  uploadedAt DateTime @default(now()) @map("uploaded_at")
+
+  // İlişkiler - Polymorphic
+  uploadedById String  @map("uploaded_by_id")
+  uploadedBy   User    @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  
+  taskId     String? @map("task_id")
+  task       Task?   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  commentId  String? @map("comment_id")
+  comment    Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@map("attachments")
+}
+
+// Reaksiyonlar
+model Reaction {
+  id        String @id @default(cuid())
+  emoji     String
+  userIds   String[] @default([]) @map("user_ids")
+
+  commentId String @map("comment_id")
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@map("reactions")
+}
+
+// Takım modeli
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  description String   @default("")
+  color       String   @default("#3B82F6")
+  department  String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // İlişkiler
+  leaderId    String   @map("leader_id")
+  leader      User     @relation("TeamLeader", fields: [leaderId], references: [id])
+  
+  members     TeamMember[]
+  projects    ProjectTeam[]
+
+  @@map("teams")
+}
+
+// Takım üyeleri - Many-to-Many
+model TeamMember {
+  id       String   @id @default(cuid())
+  teamId   String   @map("team_id")
+  userId   String   @map("user_id")
+  joinedAt DateTime @default(now()) @map("joined_at")
+
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+// Proje-Takım ilişkisi - Many-to-Many
+model ProjectTeam {
+  id        String   @id @default(cuid())
+  projectId String   @map("project_id")
+  teamId    String   @map("team_id")
+  assignedAt DateTime @default(now()) @map("assigned_at")
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, teamId])
+  @@map("project_teams")
+}
+
+// Bildirimler
+model Notification {
+  id          String           @id @default(cuid())
+  type        NotificationType
+  title       String
+  message     String
+  read        Boolean          @default(false)
+  relatedId   String?          @map("related_id")
+  relatedType String?          @map("related_type")
+  actionUrl   String?          @map("action_url")
+  createdAt   DateTime         @default(now()) @map("created_at")
+
+  // İlişkiler
+  userId      String           @map("user_id")
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// Aktiviteler
+model Activity {
+  id          String       @id @default(cuid())
+  type        ActivityType
+  description String
+  metadata    Json?
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  // İlişkiler
+  userId      String       @map("user_id")
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  projectId   String?      @map("project_id")
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  taskId      String?      @map("task_id")
+  task        Task?        @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("activities")
+}
+
+// Zaman takibi
+model TimeEntry {
+  id          String    @id @default(cuid())
+  startTime   DateTime  @map("start_time")
+  endTime     DateTime? @map("end_time")
+  duration    Int       @default(0) // minutes
+  description String?
+  billable    Boolean   @default(false)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // İlişkiler
+  userId      String    @map("user_id")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  taskId      String    @map("task_id")
+  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("time_entries")
+}
+
+// Enum tanımları
+enum UserRole {
+  ADMIN
+  MANAGER
+  MEMBER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  INVITED
+}
+
+enum ProjectStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  ARCHIVED
+}
+
+enum ProjectVisibility {
+  PUBLIC
+  PRIVATE
+  TEAM
+}
+
+enum TaskStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum NotificationType {
+  TASK_ASSIGNED
+  TASK_COMPLETED
+  COMMENT_ADDED
+  DUE_DATE_REMINDER
+  PROJECT_INVITATION
+  MENTION
+}
+
+enum ActivityType {
+  TASK_CREATED
+  TASK_UPDATED
+  TASK_COMPLETED
+  PROJECT_CREATED
+  USER_JOINED
+  COMMENT_ADDED
+}
